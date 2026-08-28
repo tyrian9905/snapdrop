@@ -1,17 +1,23 @@
-# snapdrop
-[HomePage](https://www.fairysoft.net/post/66.html)\
-[DEMO](https://snapdrop.fairysoft.net/)\
-Modify from [Snapdrop](https://github.com/RobinLinus/Snapdrop) and [Node-Snapdrop](https://github.com/Bellisario/node-snapdrop).
-Just Added Internet support and fixed the bug with Firefox receiving files.
+# Snapdrop on Cloudflare Workers
 
-## How to run
-Download the repository in a folder, cd it, install all dependencies with `npm i` and use this command: `node index.js`.
+本项目是 [Snapdrop](https://github.com/laukeng/snapdrop) 的 Cloudflare Workers 移植版，使用 **Durable Objects** 管理 WebSocket 信令，并通过 `assets` 绑定托管静态文件，实现全栈无服务器部署。
 
-## Run within your ip
-Use this command, instead, to run not locally but in your public "sharable" ip: `node index.js public`.\
-Make sure to check your ip address using your OS command.
+## ✨ 特性
 
-## How to use
-By default, it is used inside the LAN.\
-Users who are not in the same LAN can establish a connection by entering the same room name.\
-Enter a blank room name to return to LAN mode.
+- 🚀 完全运行在 Cloudflare 边缘网络
+- 🔒 自动提供 HTTPS
+- 💬 WebSocket 信令由 Durable Objects 管理，支持多房间
+- 📦 静态资源由 Cloudflare CDN 加速
+
+## 🚀 一键部署（推荐）
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/你的用户名/你的仓库名)
+
+点击上方按钮，授权 Cloudflare 访问你的 GitHub 仓库，即可自动完成部署。
+
+## 🔧 手动部署
+
+1. **克隆本项目**
+   ```bash
+   git clone https://github.com/你的用户名/你的仓库名.git
+   cd 你的仓库名
