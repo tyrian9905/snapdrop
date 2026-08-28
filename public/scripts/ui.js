@@ -22,7 +22,7 @@ class PeersUI {
         Events.on('peer-left', e => this._onPeerLeft(e.detail));
         Events.on('file-progress', e => this._onFileProgress(e.detail));
         Events.on('paste', e => this._onPaste(e));
-        // ✅ 新增：监听其他用户昵称更新事件
+        // 监听其他用户昵称更新事件
         Events.on('peer-display-name', e => this._onPeerDisplayName(e.detail));
     }
 
@@ -67,7 +67,7 @@ class PeersUI {
         }
     }
 
-    // ✅ 新增：更新其他用户卡片上的昵称
+    // 更新其他用户卡片上的昵称
     _onPeerDisplayName(data) {
         const $peer = $(data.peerId);
         if ($peer) {
@@ -131,9 +131,15 @@ class PeerUI {
         Events.on('drop', e => e.preventDefault());
     }
 
+    // ✅ 关键修改：优先从缓存读取昵称，解决先收到 display-name 后创建卡片的问题
     _displayName() {
-        // ✅ 增加默认值保护，防止 undefined
-        return this._peer.name ? this._peer.name.displayName : '未知用户';
+        // 如果 peer 对象自带 name（来自 peers 消息），优先使用
+        if (this._peer.name) return this._peer.name.displayName;
+        // 否则从全局缓存中读取（由 network.js 在收到 display-name 时设置）
+        if (window._peerNames && window._peerNames[this._peer.id]) {
+            return window._peerNames[this._peer.id];
+        }
+        return '未知用户';
     }
 
     _deviceName() {
@@ -555,7 +561,7 @@ class WebShareTargetUI {
 class Snapdrop {
     constructor() {
         const server = new ServerConnection();
-        window._server = server; // 🔥 暴露 server 实例，便于调试和手动发送
+        window._server = server; // 暴露 server 实例，便于调试和手动发送
         const peers = new PeersManager(server);
         const peersUI = new PeersUI();
         Events.on('load', e => {
