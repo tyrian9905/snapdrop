@@ -555,6 +555,7 @@ class WebShareTargetUI {
 class Snapdrop {
     constructor() {
         const server = new ServerConnection();
+        window._server = server; // 🔥 暴露 server 实例，便于调试和手动发送
         const peers = new PeersManager(server);
         const peersUI = new PeersUI();
         Events.on('load', e => {
