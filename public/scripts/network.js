@@ -24,7 +24,7 @@ class Events {
 // ---------- ServerConnection ----------
 class ServerConnection {
     constructor() {
-        this.myId = null;          // 保存自己的 WebSocket 连接 ID
+        this.myId = null;
         this._reconnectAttempts = 0;
         this._maxReconnectAttempts = 10;
         this._connect();
@@ -41,7 +41,37 @@ class ServerConnection {
         ws.onopen = e => {
             console.log('WS: server connected');
             this._reconnectAttempts = 0;
+            // 发送 join（用于获取 peers 列表）
             this.send({ type: 'join', rtcSupported: window.isRtcSupported });
+            // 🔥 立即生成并广播昵称（不等待 joined）
+            const name = generateChineseName();
+            // 更新本地显示（加粗）
+            const displayNameEl = document.getElementById('displayName');
+            if (displayNameEl) {
+                displayNameEl.innerHTML = '<b>您的昵称：' + name + '</b>';
+            } else {
+                const el = document.createElement('div');
+                el.id = 'displayName';
+                el.style.position = 'fixed';
+                el.style.top = '10px';
+                el.style.left = '10px';
+                el.style.background = 'rgba(0,0,0,0.7)';
+                el.style.color = 'white';
+                el.style.padding = '8px 12px';
+                el.style.borderRadius = '4px';
+                el.style.zIndex = '9999';
+                el.innerHTML = '<b>您的昵称：' + name + '</b>';
+                document.body.appendChild(el);
+            }
+            // 广播自己的昵称（包含 deviceName）
+            this.send({
+                type: 'display-name',
+                message: {
+                    displayName: name,
+                    deviceName: navigator.userAgent || 'Unknown Device'
+                }
+            });
+            try { localStorage.setItem('snapdrop-name', name); } catch(_) {}
         };
         ws.onmessage = e => this._onMessage(e.data);
         ws.onclose = e => this._onDisconnect();
@@ -56,34 +86,7 @@ class ServerConnection {
             case 'joined':
                 this.myId = msg.id;
                 console.log('✅ myId set to:', this.myId);
-                const name = generateChineseName();
-                // 更新本地显示，加粗
-                const displayNameEl = document.getElementById('displayName');
-                if (displayNameEl) {
-                    displayNameEl.innerHTML = '<b>您的昵称：' + name + '</b>';
-                } else {
-                    const el = document.createElement('div');
-                    el.id = 'displayName';
-                    el.style.position = 'fixed';
-                    el.style.top = '10px';
-                    el.style.left = '10px';
-                    el.style.background = 'rgba(0,0,0,0.7)';
-                    el.style.color = 'white';
-                    el.style.padding = '8px 12px';
-                    el.style.borderRadius = '4px';
-                    el.style.zIndex = '9999';
-                    el.innerHTML = '<b>您的昵称：' + name + '</b>';
-                    document.body.appendChild(el);
-                }
-                // 广播自己的昵称
-                this.send({
-                    type: 'display-name',
-                    message: {
-                        displayName: name,
-                        deviceName: navigator.userAgent || 'Unknown Device'
-                    }
-                });
-                try { localStorage.setItem('snapdrop-name', name); } catch(_) {}
+                // 可以在这里再次发送 display-name 作为冗余（但通常不需要）
                 break;
 
             case 'peers':
@@ -105,12 +108,15 @@ class ServerConnection {
             case 'display-name':
                 // 只处理其他用户的昵称更新，忽略自己的
                 if (msg.sender && msg.sender !== this.myId) {
+                    // 保存到全局缓存（供 ui.js 使用）
+                    if (!window._peerNames) window._peerNames = {};
+                    window._peerNames[msg.sender] = msg.message.displayName;
                     // 触发事件（供 ui.js 更新卡片）
                     Events.fire('peer-display-name', {
                         peerId: msg.sender,
                         displayName: msg.message.displayName
                     });
-                    // 直接更新 DOM（保险，即使事件处理延迟）
+                    // 直接更新 DOM（如果卡片已存在）
                     const $peer = document.getElementById(msg.sender);
                     if ($peer) {
                         const nameEl = $peer.querySelector('.name');
