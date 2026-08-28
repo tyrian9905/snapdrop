@@ -45,6 +45,9 @@ class ServerConnection {
             case 'display-name':
                 Events.fire('display-name', msg);
                 break;
+            case 'left':
+                Events.fire('peer-left', msg.sender);
+                break;
             default:
                 console.error('WS: unkown message type', msg);
         }
