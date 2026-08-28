@@ -40,35 +40,18 @@ class ServerConnection {
         ws.onopen = e => {
             console.log('WS: server connected');
             this._reconnectAttempts = 0;
-        
-            // 发送 join 消息
             this.send({ type: 'join', rtcSupported: window.isRtcSupported });
         
-            // 生成昵称
             const name = generateChineseName();
-        
-            // 强制在页面左上角显示昵称（即使 index.html 没有 #displayName）
+            // 强制显示在屏幕左上角（即使没有 #displayName）
             const existing = document.getElementById('snapdrop-nickname');
             if (existing) existing.remove();
             const div = document.createElement('div');
             div.id = 'snapdrop-nickname';
-            div.style.cssText = `
-                position: fixed;
-                top: 10px;
-                left: 10px;
-                background: rgba(0, 0, 0, 0.7);
-                color: white;
-                padding: 8px 14px;
-                border-radius: 20px;
-                font-size: 16px;
-                z-index: 9999;
-                font-family: sans-serif;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            `;
-            div.textContent = '👤 ' + name;
+            div.style.cssText = 'position:fixed;top:10px;left:10px;background:rgba(0,0,0,0.7);color:white;padding:8px 14px;border-radius:20px;font-size:16px;z-index:9999;';
+            div.textContent = '🫡 ' + name;
             document.body.appendChild(div);
         
-            // 同时按标准格式发送 display-name（兼容 ui.js）
             this.send({
                 type: 'display-name',
                 message: {
@@ -76,7 +59,6 @@ class ServerConnection {
                     deviceName: navigator.userAgent || 'Unknown Device'
                 }
             });
-        
             try { localStorage.setItem('snapdrop-name', name); } catch(_) {}
         };
         ws.onmessage = e => this._onMessage(e.data);
