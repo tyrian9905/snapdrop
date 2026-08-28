@@ -27,7 +27,7 @@ export class SnapdropRoom {
       try {
         const data = JSON.parse(event.data);
         this.handleMessage(server, data);
-      } catch (_) { /* ignore invalid JSON */ }
+      } catch (_) { /* 忽略无效 JSON */ }
     });
 
     server.addEventListener('close', () => {
@@ -133,7 +133,7 @@ export default {
       return stub.fetch(request);
     }
 
-    // 其他请求由 assets 处理，但这里显式返回 404 以防万一
+    // 其他请求由 assets 处理，这里显式返回 404 以防万一
     return new Response(null, { status: 404 });
   },
 };
