@@ -34,6 +34,27 @@
     <!-- Resources -->
     <link rel="stylesheet" type="text/css" href="styles.css">
     <link rel="manifest" href="manifest.json">
+
+    <!-- ===== 新增：强制移动端视口（针对手机浏览器） ===== -->
+    <script>
+        (function() {
+            // 检测是否为移动设备（包括平板）
+            if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                var meta = document.querySelector('meta[name=viewport]');
+                if (meta) {
+                    // 强制设置为移动视口，覆盖任何浏览器设置的“桌面版”选项
+                    meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                } else {
+                    // 如果不存在则创建
+                    var newMeta = document.createElement('meta');
+                    newMeta.name = 'viewport';
+                    newMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                    document.head.appendChild(newMeta);
+                }
+            }
+        })();
+    </script>
+    <!-- ================================================== -->
 </head>
 
 <body translate="no">
@@ -272,3 +293,4 @@
         </style>
     </noscript>
 </body>
+</html>
