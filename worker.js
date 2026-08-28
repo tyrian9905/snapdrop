@@ -3,7 +3,7 @@ export class SnapdropRoom {
   constructor(state, env) {
     this.state = state;
     this.env = env;
-    this.connections = new Map(); // key: WebSocket, value: { id, rtcSupported }
+    this.connections = new Map(); // key: WebSocket, value: { id, rtcSupported, joined }
   }
 
   async fetch(request) {
@@ -15,7 +15,6 @@ export class SnapdropRoom {
     const [client, server] = Object.values(pair);
     const id = crypto.randomUUID();
 
-    // 临时存储，等待客户端发送 join 消息来确定 rtcSupported
     const connInfo = { id, rtcSupported: true, joined: false };
     this.connections.set(server, connInfo);
 
@@ -24,12 +23,11 @@ export class SnapdropRoom {
     // 发送 joined 消息告知自己的 ID
     server.send(JSON.stringify({ type: 'joined', id }));
 
-    // 当收到第一条消息（期望是 join）时处理
     server.addEventListener('message', (event) => {
       try {
         const data = JSON.parse(event.data);
         this.handleMessage(server, data);
-      } catch (_) { /* ignore */ }
+      } catch (_) { /* ignore invalid JSON */ }
     });
 
     server.addEventListener('close', () => {
@@ -99,20 +97,19 @@ export class SnapdropRoom {
     // 转发信号消息（offer / answer / candidate）给目标用户
     if (type === 'signal') {
       const targetId = data.to;
-      // 查找目标连接
       for (const [conn, info] of this.connections) {
         if (info.id === targetId && conn.readyState === WebSocket.OPEN) {
-          // 添加发送者信息
           const signalMsg = { ...data, sender: senderId };
           conn.send(JSON.stringify(signalMsg));
-          break;
+          return;
         }
       }
+      // 目标未找到，可记录日志
+      console.warn(`Signal target ${targetId} not found`);
       return;
     }
 
-    // 其他消息直接转发给房间内所有人（或忽略）
-    // 为安全，这里只转发给其他人
+    // 其他消息（如 display-name）广播给房间内其他人
     const forwardMsg = { ...data, sender: senderId };
     const json = JSON.stringify(forwardMsg);
     for (const [conn, info] of this.connections) {
@@ -136,7 +133,7 @@ export default {
       return stub.fetch(request);
     }
 
-    // 其他请求由 assets 处理或返回 404
+    // 其他请求由 assets 处理，但这里显式返回 404 以防万一
     return new Response(null, { status: 404 });
   },
 };
