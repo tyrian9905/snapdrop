@@ -22,6 +22,8 @@ class PeersUI {
         Events.on('peer-left', e => this._onPeerLeft(e.detail));
         Events.on('file-progress', e => this._onFileProgress(e.detail));
         Events.on('paste', e => this._onPaste(e));
+        // ✅ 新增：监听其他用户昵称更新事件
+        Events.on('peer-display-name', e => this._onPeerDisplayName(e.detail));
     }
 
     _onPeerJoined(peer) {
@@ -62,6 +64,17 @@ class PeersUI {
                 files: files,
                 to: $$('x-peer').id
             });
+        }
+    }
+
+    // ✅ 新增：更新其他用户卡片上的昵称
+    _onPeerDisplayName(data) {
+        const $peer = $(data.peerId);
+        if ($peer) {
+            const nameEl = $peer.querySelector('.name');
+            if (nameEl) {
+                nameEl.textContent = data.displayName;
+            }
         }
     }
 }
@@ -119,15 +132,16 @@ class PeerUI {
     }
 
     _displayName() {
-        return this._peer.name.displayName;
+        // ✅ 增加默认值保护，防止 undefined
+        return this._peer.name ? this._peer.name.displayName : '未知用户';
     }
 
     _deviceName() {
-        return this._peer.name.deviceName;
+        return this._peer.name ? this._peer.name.deviceName : '';
     }
 
     _icon() {
-        const device = this._peer.name.device || this._peer.name;
+        const device = this._peer.name ? (this._peer.name.device || this._peer.name) : {};
         if (device.type === 'mobile') {
             return '#phone-iphone';
         }
