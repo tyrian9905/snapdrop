@@ -41,7 +41,6 @@ class ServerConnection {
         ws.onopen = e => {
             console.log('WS: server connected');
             this._reconnectAttempts = 0;
-            // 只发送 join，display-name 等收到 joined 后再发
             this.send({ type: 'join', rtcSupported: window.isRtcSupported });
         };
         ws.onmessage = e => this._onMessage(e.data);
@@ -56,12 +55,12 @@ class ServerConnection {
         switch (msg.type) {
             case 'joined':
                 this.myId = msg.id;
-                // 生成昵称并显示、广播
+                console.log('✅ myId set to:', this.myId);
                 const name = generateChineseName();
-                // 更新本地显示
+                // 更新本地显示，加粗
                 const displayNameEl = document.getElementById('displayName');
                 if (displayNameEl) {
-                    displayNameEl.textContent = '您的昵称：' + name;
+                    displayNameEl.innerHTML = '<b>您的昵称：' + name + '</b>';
                 } else {
                     const el = document.createElement('div');
                     el.id = 'displayName';
@@ -73,7 +72,7 @@ class ServerConnection {
                     el.style.padding = '8px 12px';
                     el.style.borderRadius = '4px';
                     el.style.zIndex = '9999';
-                    el.textContent = '您的昵称：' + name;
+                    el.innerHTML = '<b>您的昵称：' + name + '</b>';
                     document.body.appendChild(el);
                 }
                 // 广播自己的昵称
@@ -106,14 +105,22 @@ class ServerConnection {
             case 'display-name':
                 // 只处理其他用户的昵称更新，忽略自己的
                 if (msg.sender && msg.sender !== this.myId) {
+                    // 触发事件（供 ui.js 更新卡片）
                     Events.fire('peer-display-name', {
                         peerId: msg.sender,
                         displayName: msg.message.displayName
                     });
+                    // 直接更新 DOM（保险，即使事件处理延迟）
+                    const $peer = document.getElementById(msg.sender);
+                    if ($peer) {
+                        const nameEl = $peer.querySelector('.name');
+                        if (nameEl) {
+                            nameEl.textContent = msg.message.displayName;
+                        }
+                    }
                 }
                 break;
             case 'left':
-                // 兼容旧版本，转换为 peer-left
                 Events.fire('peer-left', msg.sender);
                 break;
             default:
