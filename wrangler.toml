@@ -1,0 +1,18 @@
+name = "snapdrop-worker"
+main = "worker.js"
+compatibility_date = "2024-12-18"
+
+# Durable Object 绑定
+[[durable_objects.bindings]]
+name = "ROOM"
+class_name = "SnapdropRoom"
+
+# 数据库迁移（首次部署时必须）
+[[migrations]]
+tag = "v1"
+new_classes = ["SnapdropRoom"]
+
+# 静态资源配置（assets 绑定）
+[assets]
+directory = "./public"
+binding = "ASSETS"
