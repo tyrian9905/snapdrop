@@ -1,4 +1,4 @@
-name = "snapdrop"                    # 建议改为 "snapdrop" 以匹配 CI 系统期望（避免警告）
+name = "snapdrop"
 main = "worker.js"
 compatibility_date = "2026-08-04"
 
@@ -8,8 +8,9 @@ class_name = "SnapdropRoom"
 
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["SnapdropRoom"]   # 使用 SQLite 存储后端
+new_sqlite_classes = ["SnapdropRoom"]
 
 [assets]
 directory = "./public"
 binding = "ASSETS"
+not_found_handling = "single-page-application"
