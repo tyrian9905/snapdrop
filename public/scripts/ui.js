@@ -22,15 +22,13 @@ class PeersUI {
         Events.on('peer-left', e => this._onPeerLeft(e.detail));
         Events.on('file-progress', e => this._onFileProgress(e.detail));
         Events.on('paste', e => this._onPaste(e));
-        // 监听其他用户昵称更新事件
         Events.on('peer-display-name', e => this._onPeerDisplayName(e.detail));
     }
 
     _onPeerJoined(peer) {
-        if ($(peer.id)) return; // peer already exists
+        if ($(peer.id)) return;
         const peerUI = new PeerUI(peer);
         $$('x-peers').appendChild(peerUI.$el);
-        //setTimeout(e => window.animateBackground(false), 1750); // Stop animation
     }
 
     _onPeerLeft(peerId) {
@@ -55,10 +53,6 @@ class PeersUI {
             .filter(i => i.type.indexOf('image') > -1)
             .map(i => i.getAsFile());
         const peers = document.querySelectorAll('x-peer');
-        // send the pasted image content to the only peer if there is one
-        // otherwise, select the peer somehow by notifying the client that
-        // "image data has been pasted, click the client to which to send it"
-        // not implemented
         if (files.length > 0 && peers.length === 1) {
             Events.fire('files-selected', {
                 files: files,
@@ -67,7 +61,6 @@ class PeersUI {
         }
     }
 
-    // 更新其他用户卡片上的昵称
     _onPeerDisplayName(data) {
         const $peer = $(data.peerId);
         if ($peer) {
@@ -126,16 +119,12 @@ class PeerUI {
         el.addEventListener('contextmenu', e => this._onRightClick(e));
         el.addEventListener('touchstart', e => this._onTouchStart(e));
         el.addEventListener('touchend', e => this._onTouchEnd(e));
-        // prevent browser's default file drop behavior
         Events.on('dragover', e => e.preventDefault());
         Events.on('drop', e => e.preventDefault());
     }
 
-    // ✅ 关键修改：优先从缓存读取昵称，解决先收到 display-name 后创建卡片的问题
     _displayName() {
-        // 如果 peer 对象自带 name（来自 peers 消息），优先使用
         if (this._peer.name) return this._peer.name.displayName;
-        // 否则从全局缓存中读取（由 network.js 在收到 display-name 时设置）
         if (window._peerNames && window._peerNames[this._peer.id]) {
             return window._peerNames[this._peer.id];
         }
@@ -164,7 +153,7 @@ class PeerUI {
             files: files,
             to: this._peer.id
         });
-        $input.value = null; // reset input
+        $input.value = null;
     }
 
     setProgress(progress) {
@@ -215,7 +204,7 @@ class PeerUI {
     _onTouchEnd(e) {
         if (Date.now() - this._touchStart < 500) {
             clearTimeout(this._touchTimer);
-        } else { // this was a long tap
+        } else {
             if (e) e.preventDefault();
             Events.fire('text-recipient', this._peer.id);
         }
@@ -262,11 +251,10 @@ class ReceiveDialog extends Dialog {
     }
 
     _dequeueFile() {
-        if (!this._filesQueue.length) { // nothing to do
+        if (!this._filesQueue.length) {
             this._busy = false;
             return;
         }
-        // dequeue next file
         setTimeout(_ => {
             this._busy = false;
             this._nextFile();
@@ -284,7 +272,6 @@ class ReceiveDialog extends Dialog {
             return
         }
         if (file.mime.split('/')[0] === 'image') {
-            console.log('the file is image');
             this.$el.querySelector('.preview').style.visibility = 'inherit';
             this.$el.querySelector("#img-preview").src = url;
         }
@@ -294,7 +281,6 @@ class ReceiveDialog extends Dialog {
         this.show();
 
         if (window.isDownloadSupported) return;
-        // fallback for iOS
         $a.target = '_blank';
         const reader = new FileReader();
         reader.onload = e => $a.href = reader.result;
@@ -435,10 +421,8 @@ class Toast extends Dialog {
 class Notifications {
 
     constructor() {
-        // Check if the browser supports notifications
         if (!('Notification' in window)) return;
 
-        // Check whether notification permissions have already been granted
         if (Notification.permission !== 'granted') {
             this.$button = $('notification');
             this.$button.removeAttribute('hidden');
@@ -468,12 +452,10 @@ class Notifications {
         try {
             notification = new Notification(message, config);
         } catch (e) {
-            // Android doesn't support "new Notification" if service worker is installed
             if (!serviceWorker || !serviceWorker.showNotification) return;
             notification = serviceWorker.showNotification(message, config);
         }
 
-        // Notification is persistent on Android. We have to close it manually
         if (closeTimeout) {
             setTimeout(_ => notification.close(), closeTimeout);
         }
@@ -548,12 +530,11 @@ class WebShareTargetUI {
         let shareTargetText = title ? title : '';
         shareTargetText += text ? shareTargetText ? ' ' + text : text : '';
 
-        if (url) shareTargetText = url; // We share only the Link - no text. Because link-only text becomes clickable.
+        if (url) shareTargetText = url;
 
         if (!shareTargetText) return;
         window.shareTargetText = shareTargetText;
         history.pushState({}, 'URL Rewrite', '/');
-        console.log('Shared Target Text:', '"' + shareTargetText + '"');
     }
 }
 
@@ -561,7 +542,7 @@ class WebShareTargetUI {
 class Snapdrop {
     constructor() {
         const server = new ServerConnection();
-        window._server = server; // 暴露 server 实例，便于调试和手动发送
+        window._server = server;
         const peers = new PeersManager(server);
         const peersUI = new PeersUI();
         Events.on('load', e => {
@@ -583,14 +564,12 @@ const snapdrop = new Snapdrop();
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/service-worker.js')
         .then(serviceWorker => {
-            console.log('Service Worker registered');
             window.serviceWorker = serviceWorker
         });
 }
 
 window.addEventListener('beforeinstallprompt', e => {
     if (window.matchMedia('(display-mode: standalone)').matches) {
-        // don't display install banner when installed
         return e.preventDefault();
     } else {
         const btn = document.querySelector('#install')
@@ -670,7 +649,7 @@ as the user has dismissed the permission prompt several times.
 This can be reset in Page Info
 which can be accessed by clicking the lock icon next to the URL.`;
 
-document.body.onclick = e => { // safari hack to fix audio
+document.body.onclick = e => {
     document.body.onclick = null;
     if (!(/.*Version.*Safari.*/.test(navigator.userAgent))) return;
     blop.play();
