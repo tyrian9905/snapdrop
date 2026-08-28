@@ -1,20 +1,14 @@
 window.URL = window.URL || window.webkitURL;
 window.isRtcSupported = !!(window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection);
 
-// ---------- 中文昵称生成 ----------
-const familyNames = ['张','王','李','刘','陈','杨','赵','黄','周','吴','徐','孙','胡','朱','高','林','何','郭','马','罗','梁','宋','郑','谢','韩','唐','冯','于','董','萧','程','曹','袁','邓','许','傅','沈','曾','彭','吕','苏','卢','蒋','蔡','贾','丁','魏','薛','叶','阎','余','潘','杜','戴','夏','钟','汪','田','任','姜','范','方','石','姚','谭','廖','邹','熊','金','陆','郝','孔','白','崔','康','毛','邱','秦','江','史','顾','侯','邵','孟','龙','万','段','雷','钱','汤','尹','黎','易','常','武','乔','贺','赖','龚','文','慕容','令狐','司马','诸葛','上官','欧阳','夏侯','东方','长孙','南宫','公孙'];
-const middleNames = ['伟','芳','娜','秀英','敏','静','丽','强','磊','军','洋','勇','艳','杰','倩','涛','明','超','秀','霞','平','刚','英','慧','建','文','辉','玲','桂','志','海','玉','珍','兰','云','梓','萱','诗','梦','雨','欣','子','浩','鸣','晨','若','瑾','瑞','逸','思','星','乐','飞','芷','觅','宛','怜','荷','忆','晓','水','凌','菱','琪','盼','怀','惜','枫','亦','依','南','紫','书','琴','灵','柳','元','丝','语','冰','易','青','巧','柏','冬','采','映','曼','彤','蓝','露','寒','白','翠','秋','以','晴','烟','凝','风','霜'];
-const lastNames = ['波','海','兰','雪','静','蓉','燕','竹','瑶','英','雁','夏','熙','曦','萱','涵','轩','宇','莲','翠','筠','初','薇','蕾','曼','芙','瑜','珍','芳','辉','强','琴','玉','香','梦','凡','枫','辞','宁','溪','柔','衿','星','念','冉','辰','屿','倦','意','挽','野','觅','寒','琪','琳','睿','哲','浩','然','逸','飞','云','帆','舒','雅','欣','悦','乐','华','音','泽','渊','萍','绾','妧','婳','媱','婵','珩','珏','璋','骁','晟','柳','元','丝','语','冰','易','青','巧','柏','冬','采','映','彤','蓝','露','晴','烟','凝','风','霜'];
+// ---------- 中文昵称生成（familyNames + giveNames） ----------
+const familyNames = ['杨','林','苏','顾','沈','白','李','叶','陆','秦','陈','王','张','刘','萧','楚','唐','许','方','周','宋','程','傅','江','夏','韩','何','安','温','言','简','赵','黄','吴','徐','孙','胡','朱','高','郭','马','罗','梁','郑','谢','冯','董','曹','袁','邓','曾','彭','吕','卢','蒋','蔡','贾','丁','魏','薛','余','潘','杜','戴','钟','汪','田','任','姜','范','石','姚','谭','廖','邹','熊','金','郝','孔','崔','康','毛','邱','史','侯','邵','孟','龙','万','段','雷','钱','汤','尹','黎','易','常','乔','贺','赖','龚','文','欧阳','慕容','上官','司马','令狐','诸葛','夏侯','独孤','东方','南宫','皇甫','端木','宇文','轩辕','尉迟','长孙','司徒','司空','百里','东郭','呼延','拓跋','公孙','太史'];
+const giveNames = ['轩','宇','浩','然','逸','飞','云','帆','舒','雅','欣','悦','乐','熙','华','音','泽','渊','枫','辞','宁','溪','柔','衿','星','念','寻','冉','辰','屿','倦','意','挽','野','觅','寒','梓涵','梓萱','浩宇','子轩','一鸣','晨曦','若曦','瑾瑜','瑞霖','雨泽','明熙','逸飞','思睿','星宇','瑶','琪','琳','睿','哲','然','欣','悦','乐','绾','妧','婳','媱','婵','珩','珏','璋','骁','晟','诗涵','梦瑶','雨桐','欣怡','瑾萱','芷柔','灵熙','云熙','觅柔','宛凝','怜雪','听荷','忆文','晓露','清辞','安宁','若溪','静初','予柔','书瑶','知意','念棠','落衡','云书','映月','如烟','子衿','挽筝','景琰','秋声','怀远','千雪','九霄','夜白','南衣','流云','乘风','若水','摘星','屠苏','未明','重华','清音','白泽','青鸾','扶摇','司命','长渊','墨渊','夜华','折颜','沧溟','离镜','紫萍','初七','小满','南星','兜兜','灵儿','糖糖','豆豆','阿九','十七','软软','半夏','景行','小乔','无双','樱桃'];
 
 function generateChineseName() {
     const family = familyNames[Math.floor(Math.random() * familyNames.length)];
-    const middle = middleNames[Math.floor(Math.random() * middleNames.length)];
-    let name = family + middle;
-    if (Math.random() < 0.7) {
-        const last = lastNames[Math.floor(Math.random() * lastNames.length)];
-        name += last;
-    }
-    return name;
+    const given = giveNames[Math.floor(Math.random() * giveNames.length)];
+    return family + given;
 }
 // ----------------------------------------------------------------
 
@@ -49,13 +43,11 @@ class ServerConnection {
             this._reconnectAttempts = 0;
             this.send({ type: 'join', rtcSupported: window.isRtcSupported });
 
-            // ---------- 修改点：从 localStorage 读取昵称，若无则生成并保存 ----------
             let name = localStorage.getItem('snapdrop-name');
             if (!name) {
                 name = generateChineseName();
                 localStorage.setItem('snapdrop-name', name);
             }
-            // ---------- 修改结束 ----------
 
             // 更新本地显示
             const displayNameEl = document.getElementById('displayName');
@@ -83,7 +75,6 @@ class ServerConnection {
                     deviceName: navigator.userAgent || 'Unknown Device'
                 }
             });
-            // 再次保存（确保存储）
             try { localStorage.setItem('snapdrop-name', name); } catch(_) {}
         };
         ws.onmessage = e => this._onMessage(e.data);
@@ -286,11 +277,9 @@ class Peer {
 
     _onChunkReceived(chunk) {
         if(!(chunk.byteLength || chunk.size)) return;
-        
         this._digester.unchunk(chunk);
         const progress = this._digester.progress;
         this._onDownloadProgress(progress);
-
         if (progress - this._lastProgress < 0.01) return;
         this._lastProgress = progress;
         this._sendProgress(progress);
@@ -412,34 +401,24 @@ class RTCPeer extends Peer {
         }
     }
 
-    _onIceConnectionStateChange() {
-        // 忽略
-    }
-
-    _onError(error) {
-        // 忽略
-    }
-
+    _onIceConnectionStateChange() {}
+    _onError(error) {}
     _send(message) {
         if (!this._channel) return this.refresh();
         this._channel.send(message);
     }
-
     _sendSignal(signal) {
         signal.type = 'signal';
         signal.to = this._peerId;
         this._server.send(signal);
     }
-
     refresh() {
         if (this._isConnected() || this._isConnecting()) return;
         this._connect(this._peerId, this._isCaller);
     }
-
     _isConnected() {
         return this._channel && this._channel.readyState === 'open';
     }
-
     _isConnecting() {
         return this._channel && this._channel.readyState === 'connecting';
     }
@@ -458,17 +437,14 @@ class PeersManager {
         Events.on('send-text', e => this._onSendText(e.detail));
         Events.on('peer-left', e => this._onPeerLeft(e.detail));
     }
-
     _onMessage(message) {
         if (this.peers[message.sender]) this.peers[message.sender].onServerMessage(message);
     }
-
     _onPeerJoined(peer) {
         if (window.isRtcSupported && peer.rtcSupported) {
             this.peers[peer.id] = new RTCPeer(this._server, null, peer);
         }
     }
-
     _onPeers(peers) {
         peers.forEach(peer => {
             if (window.isRtcSupported && peer.rtcSupported) {
@@ -476,21 +452,15 @@ class PeersManager {
             }
         });
     }
-
     _onRefresh() {
-        Object.values(this.peers).forEach(peer => {
-            peer.refresh();
-        });
+        Object.values(this.peers).forEach(peer => { peer.refresh(); });
     }
-
     _onFilesSelected(message) {
         this.peers[message.to].sendFiles(message.files);
     }
-
     _onSendText(message) {
         this.peers[message.to].sendText(message.text);
     }
-
     _onPeerLeft(peerId) {
         const peer = this.peers[peerId];
         delete this.peers[peerId];
@@ -510,17 +480,14 @@ class FileChunker {
         this._reader = new FileReader();
         this._reader.addEventListener('load', e => this._onChunkRead(e.target.result));
     }
-
     nextPartition() {
         this._partitionSize = 0;
         this._readChunk();
     }
-
     _readChunk() {
         const chunk = this._file.slice(this._offset, this._offset + this._chunkSize);
         this._reader.readAsArrayBuffer(chunk);
     }
-
     _onChunkRead(chunk) {
         this._offset += chunk.byteLength;
         this._partitionSize += chunk.byteLength;
@@ -531,20 +498,16 @@ class FileChunker {
         }
         this._readChunk();
     }
-
     repeatPartition() {
         this._offset -= this._partitionSize;
         this._nextPartition();
     }
-
     _isPartitionEnd() {
         return this._partitionSize >= this._maxPartitionSize;
     }
-
     isFileEnd() {
         return this._offset >= this._file.size;
     }
-
     get progress() {
         return this._offset / this._file.size;
     }
@@ -559,14 +522,12 @@ class FileDigester {
         this._name = meta.name;
         this._callback = callback;
     }
-
     unchunk(chunk) {
         this._buffer.push(chunk);
         this._bytesReceived += chunk.byteLength || chunk.size;
         const totalChunks = this._buffer.length;
         this.progress = this._bytesReceived / this._size;
         if (isNaN(this.progress)) this.progress = 1;
-
         if (this._bytesReceived < this._size) return;
         let blob = new Blob(this._buffer, { type: this._mime });
         this._callback({
