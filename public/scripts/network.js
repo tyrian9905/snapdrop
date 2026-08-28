@@ -56,11 +56,19 @@ class ServerConnection {
     }
 
     _endpoint() {
-        // hack to detect if deployment or development environment
+        // 从当前路径提取房间号（如 /123456 → 123456）
+        const room = location.pathname.substring(1) || '';
+        // 构造查询参数
+        let query = '';
+        if (room) {
+            query = '?room=' + encodeURIComponent(room);
+        }
+        // 保留原逻辑：如果浏览器不支持 WebRTC，添加 /nortc 后缀（但改为参数形式，避免路径污染）
+        if (!window.isRtcSupported) {
+            query += (query ? '&' : '?') + 'nortc';
+        }
         const protocol = location.protocol.startsWith('https') ? 'wss' : 'ws';
-        const nortc = window.isRtcSupported ? '' : '/nortc';
-        const url = protocol + '://' + location.host + location.pathname + nortc;
-        return url;
+        return protocol + '://' + location.host + '/ws' + query;
     }
 
     _disconnect() {
