@@ -1,18 +1,15 @@
-name = "snapdrop-worker"
+name = "snapdrop"                    # 建议改为 "snapdrop" 以匹配 CI 系统期望（避免警告）
 main = "worker.js"
 compatibility_date = "2024-12-18"
 
-# Durable Object 绑定
 [[durable_objects.bindings]]
 name = "ROOM"
 class_name = "SnapdropRoom"
 
-# 数据库迁移（首次部署时必须）
 [[migrations]]
 tag = "v1"
-new_classes = ["SnapdropRoom"]
+new_sqlite_classes = ["SnapdropRoom"]   # 使用 SQLite 存储后端
 
-# 静态资源配置（assets 绑定）
 [assets]
 directory = "./public"
 binding = "ASSETS"
