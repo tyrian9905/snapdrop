@@ -1,9 +1,21 @@
 window.URL = window.URL || window.webkitURL;
 window.isRtcSupported = !!(window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection);
 
-class ServerConnection {
+// ---------------------------- 中文昵称生成（如果 ui.js 未提供） ----------------------------
+// 如果你已有 ui.js 的生成逻辑，可以注释掉下面这段，否则启用
+const familyNames = ['张','王','李','刘','陈','杨','赵','黄','周','吴','徐','孙','胡','朱','高','林','何','郭','马','罗','梁','宋','郑','谢','韩','唐','冯','于','董','萧','程','曹','袁','邓','许','傅','沈','曾','彭','吕','苏','卢','蒋','蔡','贾','丁','魏','薛','叶','阎','余','潘','杜','戴','夏','钟','汪','田','任','姜','范','方','石','姚','谭','廖','邹','熊','金','陆','郝','孔','白','崔','康','毛','邱','秦','江','史','顾','侯','邵','孟','龙','万','段','雷','钱','汤','尹','黎','易','常','武','乔','贺','赖','龚','文'];
+const givenNames = ['伟','芳','娜','秀英','敏','静','丽','强','磊','军','洋','勇','艳','杰','倩','涛','明','超','秀兰','霞','平','刚','桂英','涛','慧','建','文','辉','玲','桂珍','志强','秀梅','海','玉兰','海燕','玉珍','建国','桂兰','秀珍','桂芳','玉英','海涛','秀云','桂云','志明','海峰','建平','文博','文杰','梓涵','梓萱','诗涵','梦瑶','雨桐','欣怡','子轩','浩宇','子涵','一鸣','晨曦','若曦','瑾瑜','瑞霖','雨泽','明熙','逸飞','思睿','星宇','乐瑶','瑾萱','芷柔','灵熙','云熙','觅柔','宛凝','怜雪','听荷','忆文','晓露','水瑶','凌珍','孤菱','梦琪','盼烟','怀瑶','惜蕊','雁枫','凌春','千亦','醉薇','依波','访南','海雪','雨燕','飞荷','紫安','晓枫','含玉','书瑶','乐安','水琴','静柏','从灵','香薇','绿兰','安荷','飞双','南莲','醉柳','尔容','沛山','静竹','元瑶','雁丝','语蓉','冰蝶','醉易','安青','寄灵','冰芹','凌山','醉香','巧曼','梦秋','雨柏','绿竹','妙竹','访云','怜云','孤松','从安','依瑶','晓瑶','紫真','雨真','飞薇','凌筠','盼海','诗双','从冬','妙芙','采蓝','语海','映萱','书萱','芷容','乐菱','访冬','冰蓝','曼彤','尔蓝','安露','寒松','静白','紫雪','春翠','秋柔','凌旋','以冬','凌晴','晓灵','雨荷','飞烟','千凝','水蕊','依风','映之','梦安','冰旋','访风','春蕾','醉蓝','静曼','白筠','从露','秋荷','晓丝','凌香','雨兰','梦槐','紫霜','飞瑶','依玉','凌翠','晓筠','水香','绿海','安梦','静芙','从筠','灵竹','元绿','香萱','乐双','凝珍','怀薇','采枫','紫玉','飞荷','安春','冰凡','从寒','静枫','妙旋','寻雪','如松','映阳','青梦','乐荷','静芙','依柔','香巧','雨真','诗兰','曼荷','飞兰','春兰','醉香','千兰','水荷','梦竹','乐瑶','依凝','香露','水瑶','怜蕾','秋荷','静松','念薇','飞雪','梦琪','以晴','夏槐','冰枫','春枫','雨筠','依云','诗云','香波','水波','春波','醉波','芷波','妙波','采波','雪波','冰波','梦波','雅波','凝波','忆波','访波','灵波','碧波','翠波','荷波','菱波','萍波','莲波','芝波','蓉波','薇波','茹波','蕾波','蕊波','萱波','菡波','菁波','蔚波','蓝波','滢波','澈波','漪波','澜波','澄波','溶波','渺波','淡波','清波','洁波','净波','明波','皓波','熙波','润波','沛波','泽波','瀚波','凌波','飞波','逸波','傲波','振波','正波','直波','刚波','毅波','勇波','猛波','威波','严波','宁波','安波','定波','恒波','远波','长波','永波','久波','新波','华波','兴波','昌波','盛波','世波','民波','政波','治波','理波','文波','章波','书波','画波','乐波','歌波','舞波','韵波','律波','风波','云波','雨波','雪波','雷波','电波','光波','辉波','煌波','灿波','烂波','妙波','奇波','异波','彩波','瑰波','琳波','琅波','碧波','瑄波','瑶波','琼波','琳波','琅波','琪波','璇波','瑜波','瑾波','玫波','瑰波','莹波','晶波','珠波','玉波','巧波','灵波','慧波','敏波','捷波','迅波','速波','锐波','智波','勇波','毅波','坚波','强波'];
+function generateChineseName() {
+  const family = familyNames[Math.floor(Math.random() * familyNames.length)];
+  const given = givenNames[Math.floor(Math.random() * givenNames.length)];
+  return family + given;
+}
+// ------------------------------------------------------------------------------------
 
+class ServerConnection {
     constructor() {
+        this._reconnectAttempts = 0;
+        this._maxReconnectAttempts = 10;
         this._connect();
         Events.on('beforeunload', e => this._disconnect());
         Events.on('pagehide', e => this._disconnect());
@@ -17,8 +29,13 @@ class ServerConnection {
         ws.binaryType = 'arraybuffer';
         ws.onopen = e => {
             console.log('WS: server connected');
-            // 发送 join 消息，告知服务器当前浏览器是否支持 WebRTC
+            this._reconnectAttempts = 0;
+            // 发送 join 消息
             this.send({ type: 'join', rtcSupported: window.isRtcSupported });
+            // 生成并广播中文名（如果 ui.js 已处理可删除此段）
+            const name = generateChineseName();
+            this.send({ type: 'display-name', name: name });
+            try { localStorage.setItem('snapdrop-name', name); } catch(_) {}
         };
         ws.onmessage = e => this._onMessage(e.data);
         ws.onclose = e => this._onDisconnect();
@@ -39,32 +56,42 @@ class ServerConnection {
             case 'peer-left':
                 Events.fire('peer-left', msg.peerId);
                 break;
-            case 'left':
-                Events.fire('peer-left', msg.sender);  // 之前添加的
+            case 'signal':
+                Events.fire('signal', msg);
+                break;
+            case 'ping':
+                this.send({ type: 'pong' });
+                Events.fire('refresh', msg);
+                break;
+            case 'display-name':
+                Events.fire('display-name', msg);
                 break;
             case 'joined':
-                // 不需要处理，直接忽略
+                // 忽略（已由服务器处理）
                 break;
-            // ... 其他分支
+            case 'left':
+                // 兼容旧版本，转换为 peer-left
+                Events.fire('peer-left', msg.sender);
+                break;
             default:
-                console.error('WS: unkown message type', msg);
+                console.warn('WS: unknown message type', msg);
         }
     }
 
     send(message) {
-        if (!this._isConnected()) return;
+        if (!this._isConnected()) {
+            console.warn('WS: not connected, message dropped');
+            return;
+        }
         this._socket.send(JSON.stringify(message));
     }
 
     _endpoint() {
-        // 从当前路径提取房间号（如 /123456 → 123456）
         const room = location.pathname.substring(1) || '';
-        // 构造查询参数
         let query = '';
         if (room) {
             query = '?room=' + encodeURIComponent(room);
         }
-        // 保留原逻辑：如果浏览器不支持 WebRTC，添加 /nortc 后缀（但改为参数形式，避免路径污染）
         if (!window.isRtcSupported) {
             query += (query ? '&' : '?') + 'nortc';
         }
@@ -80,6 +107,11 @@ class ServerConnection {
 
     _onDisconnect() {
         console.log('WS: server disconnected');
+        if (this._reconnectAttempts >= this._maxReconnectAttempts) {
+            Events.fire('notify-user', '连接失败，请刷新页面重试');
+            return;
+        }
+        this._reconnectAttempts++;
         Events.fire('notify-user', '连接已中断，5秒之后重试连接...');
         clearTimeout(this._reconnectTimer);
         this._reconnectTimer = setTimeout(_ => this._connect(), 5000);
