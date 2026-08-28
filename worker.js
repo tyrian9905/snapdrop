@@ -3,7 +3,8 @@ export class SnapdropRoom {
   constructor(state, env) {
     this.state = state;
     this.env = env;
-    this.connections = new Map(); // key: WebSocket, value: { id, rtcSupported, joined }
+    // connections: key = WebSocket, value = { id, rtcSupported, joined, displayName, deviceName }
+    this.connections = new Map();
   }
 
   async fetch(request) {
@@ -15,7 +16,13 @@ export class SnapdropRoom {
     const [client, server] = Object.values(pair);
     const id = crypto.randomUUID();
 
-    const connInfo = { id, rtcSupported: true, joined: false };
+    const connInfo = { 
+      id, 
+      rtcSupported: true, 
+      joined: false,
+      displayName: null,
+      deviceName: null
+    };
     this.connections.set(server, connInfo);
 
     server.accept();
@@ -27,7 +34,7 @@ export class SnapdropRoom {
       try {
         const data = JSON.parse(event.data);
         this.handleMessage(server, data);
-      } catch (_) { /* 忽略无效 JSON */ }
+      } catch (_) { /* ignore invalid JSON */ }
     });
 
     server.addEventListener('close', () => {
@@ -75,7 +82,21 @@ export class SnapdropRoom {
       }
       sender.send(JSON.stringify({ type: 'peers', peers }));
 
-      // 2. 向其他所有用户广播新用户加入
+      // 2. 向新客户端发送所有老用户的昵称（如果有）
+      for (const [conn, info] of this.connections) {
+        if (conn !== sender && conn.readyState === WebSocket.OPEN && info.displayName) {
+          sender.send(JSON.stringify({
+            type: 'display-name',
+            sender: info.id,
+            message: {
+              displayName: info.displayName,
+              deviceName: info.deviceName || ''
+            }
+          }));
+        }
+      }
+
+      // 3. 向其他所有用户广播新用户加入
       const joinMsg = JSON.stringify({
         type: 'peer-joined',
         peer: { id: senderId, rtcSupported: senderInfo.rtcSupported }
@@ -83,6 +104,26 @@ export class SnapdropRoom {
       for (const [conn, info] of this.connections) {
         if (conn !== sender && conn.readyState === WebSocket.OPEN) {
           conn.send(joinMsg);
+        }
+      }
+      return;
+    }
+
+    // 处理 display-name 消息（存储并广播）
+    if (type === 'display-name') {
+      const { displayName, deviceName } = data.message;
+      senderInfo.displayName = displayName;
+      senderInfo.deviceName = deviceName || '';
+      // 广播给其他人（带上 sender）
+      const msg = {
+        type: 'display-name',
+        sender: senderId,
+        message: { displayName, deviceName: senderInfo.deviceName }
+      };
+      const json = JSON.stringify(msg);
+      for (const [conn, info] of this.connections) {
+        if (conn !== sender && conn.readyState === WebSocket.OPEN) {
+          conn.send(json);
         }
       }
       return;
@@ -104,12 +145,11 @@ export class SnapdropRoom {
           return;
         }
       }
-      // 目标未找到，可记录日志
       console.warn(`Signal target ${targetId} not found`);
       return;
     }
 
-    // 其他消息（如 display-name）广播给房间内其他人
+    // 其他消息（如 text）广播给房间内其他人
     const forwardMsg = { ...data, sender: senderId };
     const json = JSON.stringify(forwardMsg);
     for (const [conn, info] of this.connections) {
