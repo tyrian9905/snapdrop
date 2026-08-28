@@ -2,7 +2,7 @@
 
 本项目是 [Snapdrop](https://github.com/laukeng/snapdrop) 的 Cloudflare Workers 移植版，使用 **Durable Objects** 管理 WebSocket 信令，并通过 `assets` 绑定托管静态文件，实现全栈无服务器部署。
 
-## ✨ 特性 
+## ✨ 特性
 
 - 🚀 完全运行在 Cloudflare 边缘网络
 - 🔒 自动提供 HTTPS
