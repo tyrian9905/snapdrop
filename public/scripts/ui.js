@@ -5,17 +5,14 @@ window.isDownloadSupported = (typeof document.createElement('a').download !== 'u
 window.isProductionEnvironment = !window.location.host.startsWith('localhost');
 window.iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-// set display name
 Events.on('display-name', e => {
     const me = e.detail.message;
-    const $displayName = $('displayName')
+    const $displayName = $('displayName');
     $displayName.textContent = '您的昵称：' + me.displayName;
     $displayName.title = me.deviceName;
 });
 
-
 class PeersUI {
-
     constructor() {
         Events.on('peer-opened', e => this._onPeerJoined(e.detail));
         Events.on('peer-closed', e => this._onPeerLeft(e.detail));
@@ -24,57 +21,42 @@ class PeersUI {
         Events.on('paste', e => this._onPaste(e));
         Events.on('peer-display-name', e => this._onPeerDisplayName(e.detail));
     }
-
     _onPeerJoined(peer) {
         if ($(peer.id)) return;
         const peerUI = new PeerUI(peer);
         $$('x-peers').appendChild(peerUI.$el);
     }
-
     _onPeerLeft(peerId) {
         const $peer = $(peerId);
         if (!$peer) return;
         $peer.remove();
     }
-
     _onFileProgress(progress) {
         const peerId = progress.sender || progress.recipient;
         const $peer = $(peerId);
         if (!$peer) return;
         $peer.ui.setProgress(progress.progress);
     }
-
-    _clearPeers() {
-        const $peers = $$('x-peers').innerHTML = '';
-    }
-
+    _clearPeers() { $$('x-peers').innerHTML = ''; }
     _onPaste(e) {
         const files = e.clipboardData.files || e.clipboardData.items
             .filter(i => i.type.indexOf('image') > -1)
             .map(i => i.getAsFile());
         const peers = document.querySelectorAll('x-peer');
         if (files.length > 0 && peers.length === 1) {
-            Events.fire('files-selected', {
-                files: files,
-                to: $$('x-peer').id
-            });
+            Events.fire('files-selected', { files: files, to: $$('x-peer').id });
         }
     }
-
     _onPeerDisplayName(data) {
         const $peer = $(data.peerId);
         if ($peer) {
             const nameEl = $peer.querySelector('.name');
-            if (nameEl) {
-                nameEl.textContent = data.displayName;
-            }
+            if (nameEl) nameEl.textContent = data.displayName;
         }
     }
 }
 
-
 class PeerUI {
-
     html() {
         return `
             <label class="column center" title="点击图标发送文件或者右键点击发送文字">
@@ -89,15 +71,13 @@ class PeerUI {
                 <div class="name font-subheading"></div>
                 <div class="device-name font-body2"></div>
                 <div class="status font-body2"></div>
-            </label>`
+            </label>`;
     }
-
     constructor(peer) {
         this._peer = peer;
         this._initDom();
         this._bindListeners(this.$el);
     }
-
     _initDom() {
         const el = document.createElement('x-peer');
         el.id = this._peer.id;
@@ -109,7 +89,6 @@ class PeerUI {
         this.$el = el;
         this.$progress = el.querySelector('.progress');
     }
-
     _bindListeners(el) {
         el.querySelector('input').addEventListener('change', e => this._onFilesSelected(e));
         el.addEventListener('drop', e => this._onDrop(e));
@@ -122,7 +101,6 @@ class PeerUI {
         Events.on('dragover', e => e.preventDefault());
         Events.on('drop', e => e.preventDefault());
     }
-
     _displayName() {
         if (this._peer.name) return this._peer.name.displayName;
         if (window._peerNames && window._peerNames[this._peer.id]) {
@@ -130,41 +108,25 @@ class PeerUI {
         }
         return '未知用户';
     }
-
     _deviceName() {
         return this._peer.name ? this._peer.name.deviceName : '';
     }
-
     _icon() {
         const device = this._peer.name ? (this._peer.name.device || this._peer.name) : {};
-        if (device.type === 'mobile') {
-            return '#phone-iphone';
-        }
-        if (device.type === 'tablet') {
-            return '#tablet-mac';
-        }
+        if (device.type === 'mobile') return '#phone-iphone';
+        if (device.type === 'tablet') return '#tablet-mac';
         return '#desktop-mac';
     }
-
     _onFilesSelected(e) {
         const $input = e.target;
         const files = $input.files;
-        Events.fire('files-selected', {
-            files: files,
-            to: this._peer.id
-        });
+        Events.fire('files-selected', { files: files, to: this._peer.id });
         $input.value = null;
     }
-
     setProgress(progress) {
-        if (progress > 0) {
-            this.$el.setAttribute('transfer', '1');
-        }
-        if (progress > 0.5) {
-            this.$progress.classList.add('over50');
-        } else {
-            this.$progress.classList.remove('over50');
-        }
+        if (progress > 0) this.$el.setAttribute('transfer', '1');
+        if (progress > 0.5) this.$progress.classList.add('over50');
+        else this.$progress.classList.remove('over50');
         const degrees = `rotate(${360 * progress}deg)`;
         this.$progress.style.setProperty('--progress', degrees);
         if (progress >= 1) {
@@ -172,35 +134,22 @@ class PeerUI {
             this.$el.removeAttribute('transfer');
         }
     }
-
     _onDrop(e) {
         e.preventDefault();
         const files = e.dataTransfer.files;
-        Events.fire('files-selected', {
-            files: files,
-            to: this._peer.id
-        });
+        Events.fire('files-selected', { files: files, to: this._peer.id });
         this._onDragEnd();
     }
-
-    _onDragOver() {
-        this.$el.setAttribute('drop', 1);
-    }
-
-    _onDragEnd() {
-        this.$el.removeAttribute('drop');
-    }
-
+    _onDragOver() { this.$el.setAttribute('drop', 1); }
+    _onDragEnd() { this.$el.removeAttribute('drop'); }
     _onRightClick(e) {
         e.preventDefault();
         Events.fire('text-recipient', this._peer.id);
     }
-
     _onTouchStart(e) {
         this._touchStart = Date.now();
         this._touchTimer = setTimeout(_ => this._onTouchEnd(), 610);
     }
-
     _onTouchEnd(e) {
         if (Date.now() - this._touchStart < 500) {
             clearTimeout(this._touchTimer);
@@ -217,12 +166,10 @@ class Dialog {
         this.$el.querySelectorAll('[close]').forEach(el => el.addEventListener('click', e => this.hide()))
         this.$autoFocus = this.$el.querySelector('[autofocus]');
     }
-
     show() {
         this.$el.setAttribute('show', 1);
         if (this.$autoFocus) this.$autoFocus.focus();
     }
-
     hide() {
         this.$el.removeAttribute('show');
         document.activeElement.blur();
@@ -230,9 +177,7 @@ class Dialog {
     }
 }
 
-
 class ReceiveDialog extends Dialog {
-
     constructor() {
         super('receiveDialog');
         Events.on('file-received', e => {
@@ -241,7 +186,6 @@ class ReceiveDialog extends Dialog {
         });
         this._filesQueue = [];
     }
-
     _nextFile(nextFile) {
         if (nextFile) this._filesQueue.push(nextFile);
         if (this._busy) return;
@@ -249,7 +193,6 @@ class ReceiveDialog extends Dialog {
         const file = this._filesQueue.shift();
         this._displayFile(file);
     }
-
     _dequeueFile() {
         if (!this._filesQueue.length) {
             this._busy = false;
@@ -260,13 +203,11 @@ class ReceiveDialog extends Dialog {
             this._nextFile();
         }, 300);
     }
-
     _displayFile(file) {
         const $a = this.$el.querySelector('#download');
         const url = URL.createObjectURL(file.blob);
         $a.href = url;
         $a.download = file.name;
-
         if (this._autoDownload()) {
             $a.click()
             return
@@ -275,50 +216,36 @@ class ReceiveDialog extends Dialog {
             this.$el.querySelector('.preview').style.visibility = 'inherit';
             this.$el.querySelector("#img-preview").src = url;
         }
-
         this.$el.querySelector('#fileName').textContent = file.name;
         this.$el.querySelector('#fileSize').textContent = this._formatFileSize(file.size);
         this.show();
-
         if (window.isDownloadSupported) return;
         $a.target = '_blank';
         const reader = new FileReader();
         reader.onload = e => $a.href = reader.result;
         reader.readAsDataURL(file.blob);
     }
-
     _formatFileSize(bytes) {
-        if (bytes >= 1e9) {
-            return (Math.round(bytes / 1e8) / 10) + ' GB';
-        } else if (bytes >= 1e6) {
-            return (Math.round(bytes / 1e5) / 10) + ' MB';
-        } else if (bytes > 1000) {
-            return Math.round(bytes / 1000) + ' KB';
-        } else {
-            return bytes + ' Bytes';
-        }
+        if (bytes >= 1e9) return (Math.round(bytes / 1e8) / 10) + ' GB';
+        else if (bytes >= 1e6) return (Math.round(bytes / 1e5) / 10) + ' MB';
+        else if (bytes > 1000) return Math.round(bytes / 1000) + ' KB';
+        else return bytes + ' Bytes';
     }
-
     hide() {
         this.$el.querySelector('.preview').style.visibility = 'hidden';
         this.$el.querySelector("#img-preview").src = "";
         super.hide();
         this._dequeueFile();
     }
-
     _autoDownload() {
         return !this.$el.querySelector('#autoDownload').checked
     }
 }
 
-
 class JoinRoomDialog extends Dialog {
     constructor() {
         super('joinRoomDialog');
-        this.qrcode = new QRCode(document.getElementById("qrcode"), {
-            width: 240,
-            height: 240
-        });
+        this.qrcode = new QRCode(document.getElementById("qrcode"), { width: 240, height: 240 });
         this.$text = this.$el.querySelector('#roomInput');
         this.$text.value = decodeURIComponent(location.pathname.replace(/\//g, ''));
         this.$text.addEventListener('input', _ => this._makeCode());
@@ -326,17 +253,14 @@ class JoinRoomDialog extends Dialog {
         this.$el.querySelector('form').addEventListener('submit', e => this._join(e));
         document.getElementById('showJoin').addEventListener('click', _ => this.show());
     }
-
     _join(e) {
         e.preventDefault();
         window.location.href = location.protocol + '//' + location.host + '/' + encodeURIComponent(this.$text.value);
     }
-
     _makeCode() {
         this.qrcode.makeCode(location.protocol + '//' + location.host + '/' + encodeURIComponent(this.$text.value));
     }
 }
-
 
 class SendTextDialog extends Dialog {
     constructor() {
@@ -346,7 +270,6 @@ class SendTextDialog extends Dialog {
         const button = this.$el.querySelector('form');
         button.addEventListener('submit', e => this._send(e));
     }
-
     _onRecipient(recipient) {
         this._recipient = recipient;
         this._handleShareTargetText();
@@ -357,19 +280,14 @@ class SendTextDialog extends Dialog {
         sel.removeAllRanges();
         sel.addRange(range);
     }
-
     _handleShareTargetText() {
         if (!window.shareTargetText) return;
         this.$text.textContent = window.shareTargetText;
         window.shareTargetText = '';
     }
-
     _send(e) {
         e.preventDefault();
-        Events.fire('send-text', {
-            to: this._recipient,
-            text: this.$text.innerText
-        });
+        Events.fire('send-text', { to: this._recipient, text: this.$text.innerText });
     }
 }
 
@@ -381,7 +299,6 @@ class ReceiveTextDialog extends Dialog {
         const $copy = this.$el.querySelector('#copy');
         copy.addEventListener('click', _ => this._onCopy());
     }
-
     _onText(e) {
         this.$text.innerHTML = '';
         const text = e.text;
@@ -397,7 +314,6 @@ class ReceiveTextDialog extends Dialog {
         this.show();
         window.blop.play();
     }
-
     async _onCopy() {
         await navigator.clipboard.writeText(this.$text.textContent);
         Events.fire('notify-user', '已保存到剪贴板');
@@ -409,7 +325,6 @@ class Toast extends Dialog {
         super('toast');
         Events.on('notify-user', e => this._onNotfiy(e.detail));
     }
-
     _onNotfiy(message) {
         this.$el.textContent = message;
         this.show();
@@ -417,12 +332,9 @@ class Toast extends Dialog {
     }
 }
 
-
 class Notifications {
-
     constructor() {
         if (!('Notification' in window)) return;
-
         if (Notification.permission !== 'granted') {
             this.$button = $('notification');
             this.$button.removeAttribute('hidden');
@@ -431,7 +343,6 @@ class Notifications {
         Events.on('text-received', e => this._messageNotification(e.detail.text));
         Events.on('file-received', e => this._downloadNotification(e.detail.name));
     }
-
     _requestPermission() {
         Notification.requestPermission(permission => {
             if (permission !== 'granted') {
@@ -442,12 +353,8 @@ class Notifications {
             this.$button.setAttribute('hidden', 1);
         });
     }
-
     _notify(message, body, closeTimeout = 20000) {
-        const config = {
-            body: body,
-            icon: '/images/logo_transparent_128x128.png',
-        }
+        const config = { body: body, icon: '/images/logo_transparent_128x128.png' };
         let notification;
         try {
             notification = new Notification(message, config);
@@ -455,14 +362,9 @@ class Notifications {
             if (!serviceWorker || !serviceWorker.showNotification) return;
             notification = serviceWorker.showNotification(message, config);
         }
-
-        if (closeTimeout) {
-            setTimeout(_ => notification.close(), closeTimeout);
-        }
-
+        if (closeTimeout) setTimeout(_ => notification.close(), closeTimeout);
         return notification;
     }
-
     _messageNotification(message) {
         if (isURL(message)) {
             const notification = this._notify(message, '点击打开链接');
@@ -472,24 +374,20 @@ class Notifications {
             this._bind(notification, e => this._copyText(message, notification));
         }
     }
-
     _downloadNotification(message) {
         const notification = this._notify(message, '点击保存文件');
         if (!window.isDownloadSupported) return;
         this._bind(notification, e => this._download(notification));
     }
-
     _download(notification) {
         document.querySelector('x-dialog [download]').click();
         notification.close();
     }
-
     _copyText(message, notification) {
         notification.close();
         if (!navigator.clipboard.writeText(message)) return;
         this._notify('文字已复制到剪贴板');
     }
-
     _bind(notification, handler) {
         if (notification.then) {
             notification.then(e => serviceWorker.getNotifications().then(notifications => {
@@ -501,24 +399,15 @@ class Notifications {
     }
 }
 
-
 class NetworkStatusUI {
-
     constructor() {
         window.addEventListener('offline', e => this._showOfflineMessage(), false);
         window.addEventListener('online', e => this._showOnlineMessage(), false);
         if (!navigator.onLine) this._showOfflineMessage();
     }
-
-    _showOfflineMessage() {
-        Events.fire('notify-user', '您的设备已离线');
-    }
-
-    _showOnlineMessage() {
-        Events.fire('notify-user', '您的设备已上线');
-    }
+    _showOfflineMessage() { Events.fire('notify-user', '您的设备已离线'); }
+    _showOnlineMessage() { Events.fire('notify-user', '您的设备已上线'); }
 }
-
 
 class WebShareTargetUI {
     constructor() {
@@ -526,43 +415,18 @@ class WebShareTargetUI {
         const title = parsedUrl.searchParams.get('title');
         const text = parsedUrl.searchParams.get('text');
         const url = parsedUrl.searchParams.get('url');
-
         let shareTargetText = title ? title : '';
         shareTargetText += text ? shareTargetText ? ' ' + text : text : '';
-
         if (url) shareTargetText = url;
-
         if (!shareTargetText) return;
         window.shareTargetText = shareTargetText;
         history.pushState({}, 'URL Rewrite', '/');
     }
 }
 
-
+// ---------- 核心修改：Snapdrop 类支持自定义昵称 ----------
 class Snapdrop {
     constructor() {
-        // ---------- 强制移动视口（解决手机浏览器“桌面版”选项问题） ----------
-        (function enforceMobileViewport() {
-            // 仅对移动设备生效
-            if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                const meta = document.querySelector('meta[name=viewport]');
-                if (meta) {
-                    // 确保 content 包含 width=device-width
-                    const content = meta.getAttribute('content');
-                    if (!content.includes('width=device-width')) {
-                        meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-                    }
-                } else {
-                    // 如果不存在则创建
-                    const newMeta = document.createElement('meta');
-                    newMeta.name = 'viewport';
-                    newMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-                    document.head.appendChild(newMeta);
-                }
-            }
-        })();
-        // ---------- 结束强制视口 ----------
-
         const server = new ServerConnection();
         window._server = server;
         const peers = new PeersManager(server);
@@ -577,31 +441,102 @@ class Snapdrop {
             const networkStatusUI = new NetworkStatusUI();
             const webShareTargetUI = new WebShareTargetUI();
         });
+
+        // ---------- 添加自定义昵称功能 ----------
+        const displayNameEl = document.getElementById('displayName');
+        if (displayNameEl) {
+            // 设置鼠标样式和提示
+            displayNameEl.style.cursor = 'pointer';
+            displayNameEl.title = '点击修改昵称';
+
+            // 点击修改
+            displayNameEl.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // 如果当前是粗体内容，提取昵称
+                const currentHTML = this.innerHTML;
+                const match = currentHTML.match(/您的昵称：([^<]*)/);
+                const currentName = match ? match[1] : (this.textContent.replace('您的昵称：', ''));
+
+                // 创建输入框
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = currentName;
+                input.style.fontSize = window.getComputedStyle(this).fontSize || '16px';
+                input.style.background = 'transparent';
+                input.style.border = '1px solid #aaa';
+                input.style.borderRadius = '4px';
+                input.style.padding = '2px 8px';
+                input.style.color = 'inherit';
+                input.style.width = 'auto';
+                input.style.minWidth = '120px';
+                input.style.maxWidth = '300px';
+
+                // 替换内容为输入框
+                this.innerHTML = '';
+                this.appendChild(input);
+                input.focus();
+                input.select();
+
+                // 完成编辑的函数
+                const finishEdit = () => {
+                    const newName = input.value.trim();
+                    if (newName && newName !== currentName) {
+                        // 保存到 localStorage
+                        try { localStorage.setItem('snapdrop-name', newName); } catch(_) {}
+                        // 更新本地显示
+                        this.innerHTML = '<b>您的昵称：' + newName + '</b>';
+                        // 广播给其他用户
+                        if (window._server) {
+                            window._server.send({
+                                type: 'display-name',
+                                message: {
+                                    displayName: newName,
+                                    deviceName: navigator.userAgent || 'Unknown Device'
+                                }
+                            });
+                        }
+                    } else {
+                        // 未修改或为空，恢复原样
+                        this.innerHTML = '<b>您的昵称：' + currentName + '</b>';
+                    }
+                };
+
+                // 绑定事件
+                input.addEventListener('blur', finishEdit);
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        input.blur();
+                    }
+                    if (e.key === 'Escape') {
+                        // 取消修改，恢复
+                        this.parentElement.innerHTML = '<b>您的昵称：' + currentName + '</b>';
+                    }
+                });
+            });
+        }
+        // ---------- 自定义昵称功能结束 ----------
     }
 }
 
 const snapdrop = new Snapdrop();
 
-
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/service-worker.js')
-        .then(serviceWorker => {
-            window.serviceWorker = serviceWorker
-        });
+        .then(serviceWorker => { window.serviceWorker = serviceWorker });
 }
 
 window.addEventListener('beforeinstallprompt', e => {
     if (window.matchMedia('(display-mode: standalone)').matches) {
         return e.preventDefault();
     } else {
-        const btn = document.querySelector('#install')
+        const btn = document.querySelector('#install');
         btn.hidden = false;
         btn.onclick = _ => e.prompt();
         return e.preventDefault();
     }
 });
 
-// Background Animation
 Events.on('load', () => {
     let c = document.createElement('canvas');
     document.body.appendChild(c);
@@ -613,7 +548,6 @@ Events.on('load', () => {
     style.left = 0;
     let ctx = c.getContext('2d');
     let x0, y0, w, h, dw;
-
     function init() {
         w = window.innerWidth;
         h = window.innerHeight;
@@ -627,7 +561,6 @@ Events.on('load', () => {
         drawCircles();
     }
     window.onresize = init;
-
     function drawCircle(radius) {
         ctx.beginPath();
         let color = Math.round(255 * (1 - radius / Math.max(w, h)));
@@ -636,9 +569,7 @@ Events.on('load', () => {
         ctx.stroke();
         ctx.lineWidth = 2;
     }
-
     let step = 0;
-
     function drawCircles() {
         ctx.clearRect(0, 0, w, h);
         for (let i = 0; i < 8; i++) {
@@ -646,21 +577,16 @@ Events.on('load', () => {
         }
         step += 1;
     }
-
     let loading = true;
-
     function animate() {
         if (loading || step % dw < dw - 5) {
-            requestAnimationFrame(function () {
+            requestAnimationFrame(function() {
                 drawCircles();
                 animate();
             });
         }
     }
-    window.animateBackground = function (l) {
-        loading = l;
-        animate();
-    };
+    window.animateBackground = function(l) { loading = l; animate(); };
     init();
     animate();
 });
