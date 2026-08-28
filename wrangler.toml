@@ -1,6 +1,6 @@
 name = "snapdrop"
 main = "worker.js"
-compatibility_date = "2026-08-04"
+compatibility_date = "2026-06-16"
 
 [[durable_objects.bindings]]
 name = "ROOM"
