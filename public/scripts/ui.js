@@ -541,6 +541,28 @@ class WebShareTargetUI {
 
 class Snapdrop {
     constructor() {
+        // ---------- 强制移动视口（解决手机浏览器“桌面版”选项问题） ----------
+        (function enforceMobileViewport() {
+            // 仅对移动设备生效
+            if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                const meta = document.querySelector('meta[name=viewport]');
+                if (meta) {
+                    // 确保 content 包含 width=device-width
+                    const content = meta.getAttribute('content');
+                    if (!content.includes('width=device-width')) {
+                        meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                    }
+                } else {
+                    // 如果不存在则创建
+                    const newMeta = document.createElement('meta');
+                    newMeta.name = 'viewport';
+                    newMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                    document.head.appendChild(newMeta);
+                }
+            }
+        })();
+        // ---------- 结束强制视口 ----------
+
         const server = new ServerConnection();
         window._server = server;
         const peers = new PeersManager(server);
