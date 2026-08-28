@@ -41,9 +41,29 @@ class ServerConnection {
             console.log('WS: server connected');
             this._reconnectAttempts = 0;
             this.send({ type: 'join', rtcSupported: window.isRtcSupported });
-            // 生成中文名
+        
             const name = generateChineseName();
-            // 发送符合 ui.js 期望的格式
+            // 直接更新界面上的昵称显示
+            const displayNameEl = document.getElementById('displayName');
+            if (displayNameEl) {
+                displayNameEl.textContent = '您的昵称：' + name;
+            } else {
+                // 如果元素不存在，创建一个并添加到 body 顶部
+                const el = document.createElement('div');
+                el.id = 'displayName';
+                el.style.position = 'fixed';
+                el.style.top = '10px';
+                el.style.left = '10px';
+                el.style.background = 'rgba(0,0,0,0.7)';
+                el.style.color = 'white';
+                el.style.padding = '8px 12px';
+                el.style.borderRadius = '4px';
+                el.style.zIndex = '9999';
+                el.textContent = '您的昵称：' + name;
+                document.body.appendChild(el);
+            }
+        
+            // 发送 display-name 消息（格式保持与 ui.js 期望一致）
             this.send({
                 type: 'display-name',
                 message: {
@@ -51,6 +71,7 @@ class ServerConnection {
                     deviceName: navigator.userAgent || 'Unknown Device'
                 }
             });
+        
             try { localStorage.setItem('snapdrop-name', name); } catch(_) {}
         };
         ws.onmessage = e => this._onMessage(e.data);
