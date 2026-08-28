@@ -35,19 +35,13 @@ class ServerConnection {
             case 'peer-left':
                 Events.fire('peer-left', msg.peerId);
                 break;
-            case 'signal':
-                Events.fire('signal', msg);
-                break;
-            case 'ping':
-                this.send({ type: 'pong' });
-                Events.fire('refresh', msg);
-                break;
-            case 'display-name':
-                Events.fire('display-name', msg);
-                break;
             case 'left':
-                Events.fire('peer-left', msg.sender);
+                Events.fire('peer-left', msg.sender);  // 之前添加的
                 break;
+            case 'joined':
+                // 不需要处理，直接忽略
+                break;
+            // ... 其他分支
             default:
                 console.error('WS: unkown message type', msg);
         }
