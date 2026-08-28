@@ -40,11 +40,17 @@ class ServerConnection {
         ws.onopen = e => {
             console.log('WS: server connected');
             this._reconnectAttempts = 0;
-            // 发送 join 消息
             this.send({ type: 'join', rtcSupported: window.isRtcSupported });
-            // 生成并广播中文名
+            // 生成中文名
             const name = generateChineseName();
-            this.send({ type: 'display-name', name: name });
+            // 发送符合 ui.js 期望的格式
+            this.send({
+                type: 'display-name',
+                message: {
+                    displayName: name,
+                    deviceName: navigator.userAgent || 'Unknown Device'
+                }
+            });
             try { localStorage.setItem('snapdrop-name', name); } catch(_) {}
         };
         ws.onmessage = e => this._onMessage(e.data);
