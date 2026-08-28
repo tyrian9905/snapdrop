@@ -1,6 +1,6 @@
 name = "snapdrop"                    # 建议改为 "snapdrop" 以匹配 CI 系统期望（避免警告）
 main = "worker.js"
-compatibility_date = "2024-12-18"
+compatibility_date = "2026-08-04"
 
 [[durable_objects.bindings]]
 name = "ROOM"
